@@ -1,22 +1,60 @@
 import { MetadataRoute } from 'next'
-import { articles } from '@/lib/news'
-import { vacancies } from '@/lib/vacancies'
+import type { PageResponse, VacancyListItem, EmployerDetail } from '@/types/api'
+import { getAllArticleSlugs } from '@/lib/api/news'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api/v1'
+
+async function getEmployersForSitemap(): Promise<Array<{ slug: string; updatedAt: string }>> {
+  try {
+    const res = await fetch(`${API_BASE}/employers?page=0&size=500`, {
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return []
+    const data = (await res.json()) as PageResponse<EmployerDetail>
+    return data.content.map((e) => ({ slug: e.slug, updatedAt: e.updatedAt }))
+  } catch {
+    return []
+  }
+}
+
+async function getVacanciesForSitemap(): Promise<Array<{ slug: string; publishedAt: string }>> {
+  try {
+    const res = await fetch(`${API_BASE}/vacancies?page=0&size=1000&sort=publishedAt,desc`, {
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return []
+    const data = (await res.json()) as PageResponse<VacancyListItem>
+    return data.content.map((v) => ({ slug: v.slug, publishedAt: v.publishedAt }))
+  } catch {
+    return []
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://zorgwerkwijzer.nl'
 
-  const newsUrls = articles.map((article) => ({
+  const apiNews = await getAllArticleSlugs()
+  const newsUrls = apiNews.map((article) => ({
     url: `${baseUrl}/nieuws/${article.slug}`,
-    lastModified: new Date(article.date),
+    lastModified: new Date(article.publishedAt),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }))
 
-  const vacancyUrls = vacancies.map((v) => ({
+  const apiVacancies = await getVacanciesForSitemap()
+  const vacancyUrls = apiVacancies.map((v) => ({
     url: `${baseUrl}/vacatures/${v.slug}`,
     lastModified: new Date(v.publishedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
+  }))
+
+  const apiEmployers = await getEmployersForSitemap()
+  const employerUrls = apiEmployers.map((e) => ({
+    url: `${baseUrl}/werkgevers/${e.slug}`,
+    lastModified: new Date(e.updatedAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
   }))
 
   return [
@@ -40,6 +78,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     ...vacancyUrls,
+    {
+      url: `${baseUrl}/werkgevers`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    ...employerUrls,
     {
       url: `${baseUrl}/salaris-calculator`,
       lastModified: new Date(),

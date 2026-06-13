@@ -1,6 +1,8 @@
 package nl.zorgwerkwijzer.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,7 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
+
+    private static final String WEBHOOK_PATH = "/api/v1/stripe/webhook";
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
@@ -41,6 +46,75 @@ public class GlobalExceptionHandler {
                 .validationErrors(validationErrors)
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // Fix 2: IllegalStateException → HTTP 409 Conflict
+    // Wordt gebruikt voor business-logic fouten zoals "al actief abonnement",
+    // "Stripe Price ID niet geconfigureerd", "Geen Stripe Customer ID gevonden".
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * DataIntegrityViolationException handler voor webhook idempotency.
+     * Bij het Stripe webhook-pad: HTTP 200 (Stripe stopt retries).
+     * Op alle andere paden: HTTP 409 Conflict.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (WEBHOOK_PATH.equals(path)) {
+            log.info("[STRIPE] Duplicate event gedetecteerd — idempotency-bescherming actief: {}", ex.getMessage());
+            return ResponseEntity.ok(Map.of("status", "already_processed"));
+        }
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message("Data integrity violation")
+                .path(path)
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * SubscriptionLimitException → HTTP 402 Payment Required.
+     * Wordt gebruikt bij vacaturelimiet-overschrijding of ontbrekend abonnement.
+     * Code "SUBSCRIPTION_LIMIT_EXCEEDED" stelt de frontend in staat een upgrade-banner te tonen.
+     */
+    @ExceptionHandler(SubscriptionLimitException.class)
+    public ResponseEntity<ApiError> handleSubscriptionLimitException(
+            SubscriptionLimitException ex, HttpServletRequest request) {
+        log.warn("[SUBSCRIPTION] Limiet overschreden voor {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.PAYMENT_REQUIRED.value())
+                .error("SUBSCRIPTION_LIMIT_EXCEEDED")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.PAYMENT_REQUIRED);
     }
 
     @ExceptionHandler(Exception.class)

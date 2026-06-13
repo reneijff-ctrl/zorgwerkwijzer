@@ -14,7 +14,52 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:noreply@zorgwerkwijzer.nl}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+    # C2: No wildcard fallback. Set CORS_ALLOWED_ORIGINS env-var explicitly.
+    # Production: CORS_ALLOWED_ORIGINS=https://zorgwerkwijzer.nl,https://www.zorgwerkwijzer.nl
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGINS_1:https://zorgwerkwijzer.nl}
+      - ${CORS_ALLOWED_ORIGINS_2:https://www.zorgwerkwijzer.nl}
+    allow-credentials: false
+
+  jwt:
+    # C3: Minimum 256-bit Base64-encoded secret. App refuses to start if missing or weak.
+    # Generate with: openssl rand -base64 64
+    secret: ${JWT_SECRET}
+    expiration: 900000
+    refresh-expiration: 604800000
+    issuer: zorgwerkwijzer.nl
+  supabase:
+    url: ${SUPABASE_URL:}
+    key: ${SUPABASE_SERVICE_KEY:}
+    bucket: cv-files
+  mail:
+    from: ${MAIL_FROM:noreply@zorgwerkwijzer.nl}
+    admin: ${MAIL_ADMIN:admin@zorgwerkwijzer.nl}
+  stripe:
+    # Stripe Secret Key — set via STRIPE_SECRET_KEY environment variable
+    # sk_test_... voor development, sk_live_... voor productie
+    secret-key: sk_test_51ThUP3LpdK9xKwSRGg5F8tiMdhmbg22csPGrCkMVgYKhSvzCWw8yAGk0aJ8KEZ3tqMH2xFXwn8XjxdobkfjQpEW000BuLrAVRc
+    # Stripe Webhook Signing Secret — set via STRIPE_WEBHOOK_SECRET environment variable
+    webhook-secret: whsec_31098ea02bcf7b0e5b045f3d635c16563a3582dad7f8b0866dd257917819bff2
+  frontend:
+    # Basis-URL van de frontend — gebruikt voor Stripe redirect URL whitelist validatie
+    # Productie: APP_FRONTEND_URL=https://zorgwerkwijzer.nl
+    url: ${APP_FRONTEND_URL:https://zorgwerkwijzer.nl}

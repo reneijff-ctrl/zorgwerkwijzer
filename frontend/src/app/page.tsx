@@ -1,36 +1,74 @@
 import Link from "next/link";
+import SalariswijzerSection from "@/components/SalariswijzerSection";
 import Image from "next/image";
-import { 
-  Calculator, 
-  Clock, 
-  BookOpen, 
-  ArrowRight, 
-  Sun, 
-  Stethoscope, 
-  Heart, 
-  Activity, 
-  Gift, 
-  MapPin, 
-  CheckCircle2, 
-  ChevronRight, 
+import {
+  Calculator,
+  Clock,
+  BookOpen,
+  ArrowRight,
+  Sun,
+  Stethoscope,
+  Heart,
+  Activity,
+  Gift,
+  MapPin,
+  CheckCircle2,
+  ChevronRight,
   TrendingUp,
   ShieldCheck,
-  Zap
+  Zap,
+  Briefcase,
+  Building2,
+  Users,
+  GraduationCap,
+  UserCheck,
 } from "lucide-react";
 import { Metadata } from "next";
 import NewsletterForm from "@/components/NewsletterForm";
-import { articles } from "@/lib/news";
+import { getArticles, formatDate, type NewsArticle } from "@/lib/api/news";
+import { getVacancies, formatSalary } from "@/lib/api/vacancies";
+import { getAllEmployers } from "@/lib/api/employers";
+import type { VacancyListItem, EmployerDetail } from "@/types/api";
 
 export const metadata: Metadata = {
   title: "ZorgWerkWijzer | Hét portaal voor de zorgmedewerker",
-  description: "Bereken je salaris, ORT, vakantiegeld en eindejaarsuitkering. Ontdek alles over de CAO VVT en blijf op de hoogte van het laatste zorgnieuws.",
+  description: "Bereken je salaris, ORT, vakantiegeld en eindejaarsuitkering. Ontdek zorgvacatures en alles over de CAO VVT op één plek.",
   alternates: {
     canonical: "https://zorgwerkwijzer.nl",
   },
 };
 
-export default function Home() {
-  const latestNews = articles.slice(0, 3);
+export default async function Home() {
+  let latestNews: NewsArticle[] = [];
+  let latestVacancies: VacancyListItem[] = [];
+  let topEmployers: EmployerDetail[] = [];
+
+  try {
+    const data = await getArticles({ size: 3 });
+    latestNews = data.content;
+  } catch {
+    latestNews = [];
+  }
+
+  try {
+    const data = await getVacancies(0, 6);
+    latestVacancies = data.content;
+  } catch {
+    latestVacancies = [];
+  }
+
+  try {
+    const data = await getAllEmployers(0, 8);
+    if (data) {
+      // Filter werkgevers met vacatures en sorteer op vacatureCount
+      topEmployers = data.content
+        .filter((e) => (e.vacancyCount ?? 0) > 0)
+        .sort((a, b) => (b.vacancyCount ?? 0) - (a.vacancyCount ?? 0))
+        .slice(0, 6);
+    }
+  } catch {
+    topEmployers = [];
+  }
 
   const faqItems = [
     {
@@ -59,36 +97,16 @@ export default function Home() {
         "@id": "https://zorgwerkwijzer.nl/#webpage",
         "url": "https://zorgwerkwijzer.nl",
         "name": "ZorgWerkWijzer Homepage",
-        "description": "Portaal voor Nederlandse zorgmedewerkers met calculators en CAO informatie."
+        "description": "Portaal voor Nederlandse zorgmedewerkers met calculators, vacatures en CAO informatie."
       },
       {
         "@type": "ItemList",
         "name": "Populaire Zorg Calculators",
         "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "url": "https://zorgwerkwijzer.nl/salaris-calculator",
-            "name": "Salaris Calculator"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "url": "https://zorgwerkwijzer.nl/ort-calculator",
-            "name": "ORT Calculator"
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "url": "https://zorgwerkwijzer.nl/vakantiegeld-berekenen",
-            "name": "Vakantiegeld Calculator"
-          },
-          {
-            "@type": "ListItem",
-            "position": 4,
-            "url": "https://zorgwerkwijzer.nl/eindejaarsuitkering-berekenen",
-            "name": "Eindejaarsuitkering Calculator"
-          }
+          { "@type": "ListItem", "position": 1, "url": "https://zorgwerkwijzer.nl/salaris-calculator", "name": "Salaris Calculator" },
+          { "@type": "ListItem", "position": 2, "url": "https://zorgwerkwijzer.nl/ort-calculator", "name": "ORT Calculator" },
+          { "@type": "ListItem", "position": 3, "url": "https://zorgwerkwijzer.nl/vakantiegeld-berekenen", "name": "Vakantiegeld Calculator" },
+          { "@type": "ListItem", "position": 4, "url": "https://zorgwerkwijzer.nl/eindejaarsuitkering-berekenen", "name": "Eindejaarsuitkering Calculator" }
         ]
       },
       {
@@ -96,220 +114,263 @@ export default function Home() {
         "mainEntity": faqItems.map(item => ({
           "@type": "Question",
           "name": item.question,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": item.answer
-          }
+          "acceptedAnswer": { "@type": "Answer", "text": item.answer }
         }))
       }
     ]
   };
 
   return (
-    <div className="space-y-24 pb-24">
+    <div className="space-y-20 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white pt-10 pb-16 md:pt-16 md:pb-24">
+      {/* ── 1. Hero Section ─────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-white pt-10 pb-14 md:pt-12 md:pb-16">
         {/* Floating background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-[10%] left-[5%] w-72 h-72 bg-brand-blue/10 rounded-full blur-[100px] animate-float" />
           <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-brand-pink/10 rounded-full blur-[120px] animate-float-slow" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-orange/5 rounded-full blur-[150px] animate-pulse-soft" />
-          
+
           {/* Watermark Logo */}
           <div className="absolute top-1/2 right-[-5%] -translate-y-1/2 opacity-[0.03] scale-150 hidden lg:block transform rotate-12">
-            <Image 
-              src="/images/zorgwerkwijzer-logo.png" 
-              alt="" 
-              width={800} 
-              height={300} 
-            />
+            <Image src="/images/zorgwerkwijzer-logo.png" alt="" width={800} height={300} />
           </div>
 
-          {/* Floating healthcare elements */}
+          {/* Floating healthcare icons */}
           <Stethoscope className="absolute top-[15%] right-[15%] w-12 h-12 text-brand-blue/20 animate-float hidden md:block" />
           <Heart className="absolute bottom-[20%] left-[15%] w-10 h-10 text-brand-pink/20 animate-float-slow hidden md:block" />
           <Activity className="absolute top-[40%] left-[10%] w-8 h-8 text-brand-orange/20 animate-pulse-soft hidden md:block" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-8 tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight">
             Hét portaal voor de <br />
             <span className="bg-gradient-to-r from-brand-blue via-brand-pink to-brand-orange bg-clip-text text-transparent">
               zorgmedewerker
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Bereken je salaris, ORT en blijf op de hoogte van de laatste CAO ontwikkelingen. 
-            Alles wat je nodig hebt op één plek.
+          <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            Bereken je salaris, ORT en vakantiegeld. Ontdek zorgvacatures en blijf op de hoogte van de laatste CAO ontwikkelingen.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-12">
-            <Link href="/salaris-calculator" className="bg-gradient-to-r from-brand-blue to-brand-dark text-white rounded-2xl shadow-xl shadow-brand-blue/20 hover:shadow-2xl hover:shadow-brand-blue/30 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 text-lg px-10 py-5 font-bold">
-              Direct berekenen
-              <Zap className="w-5 h-5" />
+          <div className="flex flex-col sm:flex-row justify-center gap-5 mb-10">
+            <Link href="/vacatures" className="bg-gradient-to-r from-brand-blue to-brand-dark text-white rounded-2xl shadow-xl shadow-brand-blue/20 hover:shadow-2xl hover:shadow-brand-blue/30 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 text-lg px-10 py-4 font-bold">
+              <Briefcase className="w-5 h-5" />
+              Bekijk vacatures
             </Link>
-            <Link href="/over-ons" className="bg-white text-slate-700 border border-slate-200 px-10 py-5 rounded-2xl hover:bg-slate-50 shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all font-bold text-lg">
-              Ontdek Zorgwerkwijzer
+            <Link href="/salaris-calculator" className="bg-white text-slate-700 border border-slate-200 px-10 py-4 rounded-2xl hover:bg-slate-50 shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all font-bold text-lg flex items-center justify-center gap-2">
+              <Zap className="w-5 h-5 text-brand-blue" />
+              Salaris berekenen
             </Link>
           </div>
 
           {/* Trust indicators */}
-          <div className="flex flex-wrap justify-center gap-x-10 gap-y-4 text-slate-500 font-semibold text-base">
+          <div className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-slate-500 font-semibold text-sm md:text-base">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Actuele zorgvacatures
+            </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Gebaseerd op actuele CAO&apos;s
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Gratis & Onafhankelijk
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Door zorgmedewerkers, voor zorgmedewerkers
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Gratis &amp; Onafhankelijk
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. Most Used Calculators */}
+      {/* ── 2. Actuele vacatures ─────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex items-end justify-between">
+        <div className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Meest gebruikte calculators</h2>
-            <p className="text-slate-600 text-lg">De populairste rekentools voor zorgprofessionals.</p>
+            <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">🔥 Direct beschikbaar</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Actuele vacatures in de zorg</h2>
+            <p className="text-slate-600 text-lg">De nieuwste openstaande posities bij topwerkgevers.</p>
           </div>
-          <Link href="/over-ons" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all">
-            Bekijk alle tools <ArrowRight className="w-5 h-5" />
+          <Link href="/vacatures" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all whitespace-nowrap">
+            Alle vacatures <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <CalculatorCard 
+
+        {latestVacancies.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {latestVacancies.map((vacancy) => (
+              <VacancyCard key={vacancy.id} vacancy={vacancy} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-slate-50 rounded-3xl">
+            <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+            <p className="text-slate-500 text-lg font-medium">Binnenkort nieuwe vacatures beschikbaar.</p>
+            <Link href="/vacatures" className="mt-4 inline-flex items-center gap-2 text-brand-blue font-bold">
+              Bekijk alle vacatures <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
+        <div className="mt-8 text-center md:hidden">
+          <Link href="/vacatures" className="inline-flex items-center gap-2 bg-brand-blue text-white px-8 py-3 rounded-2xl font-bold hover:bg-brand-dark transition-colors">
+            Bekijk alle vacatures <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 3. Populaire calculators ─────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 flex items-end justify-between">
+          <div>
+            <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">💰 Financieel inzicht</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Populaire calculators</h2>
+            <p className="text-slate-600 text-lg">De meest gebruikte rekentools voor zorgprofessionals.</p>
+          </div>
+          <Link href="/salaris-calculator" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all whitespace-nowrap">
+            Alle calculators <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <CalculatorCard
             icon={<Calculator className="w-6 h-6 text-brand-blue" />}
-            title="Salaris"
-            description="Bruto naar netto"
+            title="Salaris Calculator"
+            description="Bruto naar netto berekenen"
             href="/salaris-calculator"
             color="bg-brand-blue"
           />
-          <CalculatorCard 
+          <CalculatorCard
             icon={<Clock className="w-6 h-6 text-brand-dark" />}
-            title="ORT"
-            description="Toeslagen berekenen"
+            title="ORT Calculator"
+            description="Onregelmatigheidstoeslag"
             href="/ort-calculator"
             color="bg-brand-dark"
           />
-          <CalculatorCard 
+          <CalculatorCard
             icon={<Sun className="w-6 h-6 text-brand-orange" />}
             title="Vakantiegeld"
             description="8% vakantiebijslag"
             href="/vakantiegeld-berekenen"
             color="bg-brand-orange"
           />
-          <CalculatorCard 
+          <CalculatorCard
             icon={<Gift className="w-6 h-6 text-brand-pink" />}
-            title="Eindejaar"
-            description="Dertiende maand"
+            title="Eindejaarsuitkering"
+            description="Dertiende maand berekenen"
             href="/eindejaarsuitkering-berekenen"
             color="bg-brand-pink"
           />
         </div>
       </section>
 
-      {/* 3. Salary Guides */}
+      {/* ── 4. Werken bij topwerkgevers ──────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900 rounded-[3rem] p-10 md:p-20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-blue/20 rounded-full blur-[120px] -mr-48 -mt-48" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-pink/20 rounded-full blur-[120px] -ml-48 -mb-48" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
-            <div className="lg:w-1/2">
-              <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">Salariswijzer per functie</h2>
-              <p className="text-slate-400 text-xl mb-10 leading-relaxed">
-                Wil je weten wat je hoort te verdienen? Ontdek de actuele salarisschalen, FWG-indelingen en groeipad voor de meest voorkomende rollen in de zorg.
-              </p>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 text-white">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                  <span className="text-lg">Up-to-date voor CAO VVT 2024-2026</span>
-                </div>
-                <div className="flex items-center gap-3 text-white">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                  <span className="text-lg">Inclusief ORT en vakantiegeld impact</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="lg:w-1/2 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-              <RoleCard 
-                title="Verpleegkundige" 
-                scale="FWG 45 - 55" 
-                href="/salaris/verpleegkundige"
-                color="border-brand-blue"
-              />
-              <RoleCard 
-                title="Verzorgende IG" 
-                scale="FWG 35 - 40" 
-                href="/salaris/verzorgende-ig"
-                color="border-brand-pink"
-              />
-              <RoleCard 
-                title="Doktersassistent" 
-                scale="Schaal 4 - 5" 
-                href="/salaris/doktersassistent"
-                color="border-brand-blue"
-              />
-              <RoleCard 
-                title="Helpende Plus" 
-                scale="FWG 25 - 30" 
-                href="/salaris/helpende-plus"
-                color="border-brand-orange"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Latest CAO Updates */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex items-end justify-between">
+        <div className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Laatste CAO & Salaris updates</h2>
-            <p className="text-slate-600 text-lg">Blijf op de hoogte van belangrijke wijzigingen in de zorgsector.</p>
+            <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">🏥 Top zorgorganisaties</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Werken bij topwerkgevers</h2>
+            <p className="text-slate-600 text-lg">Ontdek zorgorganisaties met openstaande vacatures.</p>
           </div>
-          <Link href="/nieuws" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all">
-            Alle artikelen <ArrowRight className="w-5 h-5" />
+          <Link href="/werkgevers" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all whitespace-nowrap">
+            Alle werkgevers <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {latestNews.map((article) => (
-            <Link key={article.slug} href={`/nieuws/${article.slug}`} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-              <div className="aspect-video bg-slate-100 relative overflow-hidden">
-                <Image 
-                  src={article.image} 
-                  alt={article.title} 
-                  fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-brand-blue">
-                  {article.category}
+        {topEmployers.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {topEmployers.map((employer) => (
+              <EmployerCard key={employer.id} employer={employer} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Placeholder cards als geen werkgevers beschikbaar */}
+            {["Buurtzorg", "Zuyderland", "Meander", "Envida", "Sevagram", "MeanderGroep"].map((name) => (
+              <Link key={name} href="/werkgevers" className="bg-white border border-slate-100 rounded-2xl p-4 text-center hover:border-brand-blue hover:shadow-md transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-sky-50 transition-colors">
+                  <Building2 className="w-6 h-6 text-slate-400 group-hover:text-brand-blue transition-colors" />
                 </div>
-              </div>
-              <div className="p-6">
-                <div className="text-slate-400 text-sm mb-2">{article.date} • {article.readingTime}</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-blue transition-colors">{article.title}</h3>
-                <p className="text-slate-600 line-clamp-2 mb-4">{article.description}</p>
-                <span className="text-brand-blue font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                  Lees meer <ChevronRight className="w-4 h-4" />
-                </span>
-              </div>
-            </Link>
-          ))}
+                <p className="text-sm font-bold text-slate-700 truncate">{name}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 text-center md:hidden">
+          <Link href="/werkgevers" className="inline-flex items-center gap-2 text-brand-blue font-bold">
+            Alle werkgevers bekijken <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
-      {/* 5. Popular Topics */}
+      {/* ── 5. CAO informatie ────────────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">📚 Arbeidsvoorwaarden</p>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">CAO informatie</h2>
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto">Alles over je arbeidsrechten, salarisschalen en toeslagen per sector.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <CaoCard
+            title="CAO VVT"
+            description="Verpleging, Verzorging en Thuiszorg — de grootste zorg-CAO met FWG-indelingen en ORT-regels."
+            href="/cao-vvt"
+            badge="Meest gebruikt"
+            badgeColor="bg-emerald-100 text-emerald-700"
+            iconBg="bg-sky-50"
+          />
+          <CaoCard
+            title="CAO Ziekenhuizen"
+            description="Arbeidsvoorwaarden voor medewerkers in algemene en universitaire ziekenhuizen."
+            href="/cao/ziekenhuizen"
+            badge="UMC & Ziekenhuis"
+            badgeColor="bg-blue-100 text-blue-700"
+            iconBg="bg-blue-50"
+          />
+          <CaoCard
+            title="CAO GGZ"
+            description="Geestelijke Gezondheidszorg — salarisschalen en arbeidsvoorwaarden voor GGZ-medewerkers."
+            href="/cao/ggz"
+            badge="GGZ"
+            badgeColor="bg-purple-100 text-purple-700"
+            iconBg="bg-purple-50"
+          />
+          <CaoCard
+            title="CAO Gehandicaptenzorg"
+            description="Arbeidsvoorwaarden voor medewerkers in de gehandicaptenzorg en ondersteuning."
+            href="/cao/gehandicaptenzorg"
+            badge="Gehandicaptenzorg"
+            badgeColor="bg-orange-100 text-orange-700"
+            iconBg="bg-orange-50"
+          />
+        </div>
+      </section>
+
+      {/* ── 6. Populaire zorgfuncties ────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 flex items-end justify-between">
+          <div>
+            <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">👩‍⚕️ Zoek op functie</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Populaire zorgfuncties</h2>
+            <p className="text-slate-600 text-lg">Bekijk vacatures per functie in de zorg.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <ZorgfunctieCard href="/vacatures/verpleegkundige" title="Verpleegkundige" icon={<Stethoscope className="w-6 h-6" />} color="text-sky-600 bg-sky-50" />
+          <ZorgfunctieCard href="/vacatures/verzorgende-ig" title="Verzorgende IG" icon={<Heart className="w-6 h-6" />} color="text-pink-600 bg-pink-50" />
+          <ZorgfunctieCard href="/vacatures/helpende-plus" title="Helpende Plus" icon={<UserCheck className="w-6 h-6" />} color="text-orange-600 bg-orange-50" />
+          <ZorgfunctieCard href="/vacatures?q=doktersassistent" title="Doktersassistent" icon={<Activity className="w-6 h-6" />} color="text-emerald-600 bg-emerald-50" />
+          <ZorgfunctieCard href="/vacatures?q=wijkverpleegkundige" title="Wijkverpleeg­kundige" icon={<MapPin className="w-6 h-6" />} color="text-violet-600 bg-violet-50" />
+          <ZorgfunctieCard href="/vacatures?q=begeleider" title="Begeleider" icon={<Users className="w-6 h-6" />} color="text-teal-600 bg-teal-50" />
+        </div>
+      </section>
+
+      {/* ── 7. Salariswijzer per functie (interactief) ───────────────────── */}
+      <SalariswijzerSection />
+
+      {/* ── 8. Populaire onderwerpen ─────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-sky-50 rounded-[3rem] p-10 md:p-16 border border-sky-100">
           <h2 className="text-3xl font-black text-slate-900 mb-10 text-center">Populaire onderwerpen</h2>
@@ -322,7 +383,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. Newsletter Signup Block */}
+      {/* ── 9. Laatste nieuws ────────────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 flex items-end justify-between">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Laatste CAO &amp; Salaris updates</h2>
+            <p className="text-slate-600 text-lg">Blijf op de hoogte van belangrijke wijzigingen in de zorgsector.</p>
+          </div>
+          <Link href="/nieuws" className="hidden md:flex items-center gap-2 text-brand-blue font-bold hover:gap-3 transition-all">
+            Alle artikelen <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {latestNews.map((article) => (
+            <Link key={article.slug} href={`/nieuws/${article.slug}`} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-indigo-500/10" />
+                {article.category && (
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-brand-blue">
+                    {article.category}
+                  </div>
+                )}
+              </div>
+              <div className="p-6">
+                <div className="text-slate-400 text-sm mb-2">{formatDate(article.publishedAt, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-blue transition-colors">{article.title}</h3>
+                <p className="text-slate-600 line-clamp-2 mb-4">{article.excerpt ?? article.title}</p>
+                <span className="text-brand-blue font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Lees meer <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 10. Waarom ZorgWerkwijzer ────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-br from-slate-50 to-sky-50 rounded-[3rem] p-10 md:p-16 border border-slate-100">
+          <div className="text-center mb-12">
+            <p className="text-sm font-bold text-brand-blue uppercase tracking-wider mb-2">⭐ Vertrouwd door zorgprofessionals</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Waarom ZorgWerkwijzer?</h2>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">Alles op één plek voor de Nederlandse zorgmedewerker.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <TrustItem icon={<CheckCircle2 className="w-6 h-6 text-emerald-500" />} title="Actuele CAO info" description="Op basis van de nieuwste CAO's 2024-2026" />
+            <TrustItem icon={<Calculator className="w-6 h-6 text-brand-blue" />} title="Salarisberekeningen" description="Nauwkeurige berekeningen inclusief ORT" />
+            <TrustItem icon={<Briefcase className="w-6 h-6 text-brand-orange" />} title="Gratis vacatures" description="Actuele zorgvacatures zonder kosten" />
+            <TrustItem icon={<ShieldCheck className="w-6 h-6 text-violet-500" />} title="Onafhankelijk" description="Geen commerciële belangen, eerlijke info" />
+            <TrustItem icon={<GraduationCap className="w-6 h-6 text-pink-500" />} title="Voor zorgmedewerkers" description="Door en voor mensen in de zorg" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── 11. Newsletter ───────────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center bg-white rounded-[3rem] p-8 md:p-16 border border-slate-200 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-64 h-64 bg-brand-blue/5 rounded-full blur-[80px] -ml-32 -mt-32" />
@@ -341,14 +456,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 7. FAQ Section */}
+      {/* ── 12. FAQ ──────────────────────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className="text-4xl font-black text-slate-900 mb-4">Veelgestelde vragen</h2>
           <p className="text-slate-600 text-lg">Alles wat je moet weten over je salaris en rechten in de zorg.</p>
         </div>
-        
-        <div className="space-y-6">
+
+        <div className="space-y-5">
           {faqItems.map((item, index) => (
             <div key={index} className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-xl font-bold text-slate-900 mb-3 flex items-start gap-3">
@@ -363,16 +478,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. Strong CTA Section */}
+      {/* ── 13. Strong CTA ───────────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="bg-gradient-to-br from-brand-blue to-brand-dark rounded-[3rem] py-20 px-8 relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] -mr-48 -mt-48" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-pink/20 rounded-full blur-[120px] -ml-48 -mb-48" />
-          
+
           <div className="relative z-10">
             <h2 className="text-4xl md:text-6xl font-black text-white mb-8">Bereid je voor op je volgende <br className="hidden md:block" /> salarisgesprek</h2>
             <p className="text-blue-100 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
-              Gebruik onze tools om precies te weten waar je recht op hebt. 
+              Gebruik onze tools om precies te weten waar je recht op hebt.
               Kennis is macht, zeker als het om je inkomen gaat.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
@@ -390,14 +505,80 @@ export default function Home() {
   );
 }
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function VacancyCard({ vacancy }: { vacancy: VacancyListItem }) {
+  return (
+    <Link
+      href={`/vacatures/${vacancy.slug}`}
+      className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col"
+    >
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center shrink-0 group-hover:bg-sky-100 transition-colors">
+          <Briefcase className="w-5 h-5 text-brand-blue" />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-bold text-slate-900 text-base leading-snug group-hover:text-brand-blue transition-colors line-clamp-2">
+            {vacancy.title}
+          </h3>
+          {vacancy.employerName && (
+            <p className="text-slate-500 text-sm mt-0.5 truncate">{vacancy.employerName}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mt-auto pt-3 border-t border-slate-50">
+        {vacancy.cityName && (
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full">
+            <MapPin className="w-3 h-3" />
+            {vacancy.cityName}
+          </span>
+        )}
+        {vacancy.employmentType && (
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full">
+            <Clock className="w-3 h-3" />
+            {vacancy.employmentType.replace(/_/g, ' ')}
+          </span>
+        )}
+        {(vacancy.salaryMin != null || vacancy.salaryMax != null) && (
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-medium">
+            {formatSalary(vacancy.salaryMin, vacancy.salaryMax)}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function EmployerCard({ employer }: { employer: EmployerDetail }) {
+  return (
+    <Link
+      href={`/werkgevers/${employer.slug}`}
+      className="bg-white border border-slate-100 rounded-2xl p-4 text-center hover:border-brand-blue hover:shadow-md transition-all group"
+    >
+      <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-sky-50 transition-colors">
+        {employer.logoUrl ? (
+          <Image src={employer.logoUrl} alt={employer.name} width={48} height={48} className="w-full h-full object-contain" />
+        ) : (
+          <Building2 className="w-6 h-6 text-slate-400 group-hover:text-brand-blue transition-colors" />
+        )}
+      </div>
+      <p className="text-sm font-bold text-slate-700 truncate">{employer.name}</p>
+      {(employer.vacancyCount ?? 0) > 0 && (
+        <p className="text-xs text-brand-blue font-medium mt-1">{employer.vacancyCount} vacature{employer.vacancyCount === 1 ? '' : 's'}</p>
+      )}
+    </Link>
+  );
+}
+
 function CalculatorCard({ icon, title, description, href, color }: { icon: React.ReactNode, title: string, description: string, href: string, color: string }) {
   return (
     <Link href={href} className="group bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
-      <p className="text-slate-500 mb-4">{description}</p>
+      <h3 className="text-lg font-bold text-slate-900 mb-1.5">{title}</h3>
+      <p className="text-slate-500 text-sm mb-4">{description}</p>
       <div className="text-brand-blue font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all text-sm">
         Starten <ChevronRight className="w-4 h-4" />
       </div>
@@ -405,19 +586,49 @@ function CalculatorCard({ icon, title, description, href, color }: { icon: React
   );
 }
 
-function RoleCard({ title, scale, href, color }: { title: string, scale: string, href: string, color: string }) {
+function CaoCard({ title, description, href, badge, badgeColor, iconBg }: {
+  title: string; description: string; href: string; badge: string; badgeColor: string; iconBg: string;
+}) {
   return (
-    <Link href={href} className={`bg-white/5 hover:bg-white/10 p-5 rounded-2xl flex items-center justify-between group transition-all border-l-4 ${color}`}>
-      <div>
-        <h3 className="text-white font-bold text-lg">{title}</h3>
-        <p className="text-slate-400 text-sm">{scale}</p>
+    <Link href={href} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-6 flex flex-col">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${iconBg} group-hover:scale-110 transition-transform`}>
+        <BookOpen className="w-6 h-6 text-slate-600" />
       </div>
-      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-        <ChevronRight className="w-5 h-5 text-white" />
+      <span className={`self-start text-xs font-bold px-2.5 py-0.5 rounded-full mb-3 ${badgeColor}`}>{badge}</span>
+      <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-brand-blue transition-colors">{title}</h3>
+      <p className="text-slate-500 text-sm leading-relaxed flex-1">{description}</p>
+      <div className="mt-4 text-brand-blue font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all text-sm">
+        Meer lezen <ChevronRight className="w-4 h-4" />
       </div>
     </Link>
   );
 }
+
+function ZorgfunctieCard({ href, title, icon, color }: { href: string; title: string; icon: React.ReactNode; color: string }) {
+  return (
+    <Link href={href} className="bg-white rounded-2xl border border-slate-100 p-4 text-center hover:border-brand-blue hover:shadow-md transition-all group flex flex-col items-center gap-3">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <span className="text-sm font-bold text-slate-700 leading-tight">{title}</span>
+    </Link>
+  );
+}
+
+function TrustItem({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center text-center gap-3 p-4">
+      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+        {icon}
+      </div>
+      <div>
+        <p className="font-bold text-slate-900 text-sm">{title}</p>
+        <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">{description}</p>
+      </div>
+    </div>
+  );
+}
+
 
 function TopicLink({ icon, title, href }: { icon: React.ReactNode, title: string, href: string }) {
   return (
