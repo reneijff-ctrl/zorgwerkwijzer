@@ -639,7 +639,7 @@ function EmployerCard({ employer }: { employer: EmployerDetail }) {
     >
       <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-sky-50 transition-colors">
         {employer.logoUrl ? (
-          <Image src={employer.logoUrl} alt={employer.name} width={48} height={48} className="w-full h-full object-contain" />
+          <Image src={employer.logoUrl} alt={employer.name} width={48} height={48} className="w-full h-full object-contain" unoptimized={!/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(employer.logoUrl)} />
         ) : (
           <Building2 className="w-6 h-6 text-slate-400 group-hover:text-brand-blue transition-colors" />
         )}

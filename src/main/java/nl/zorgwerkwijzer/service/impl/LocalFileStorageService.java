@@ -65,6 +65,7 @@ public class LocalFileStorageService implements FileStorageService {
         String ext = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
         return switch (ext) {
             case ".pdf", ".doc", ".docx" -> ext;
+            case ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg" -> ext;
             default -> "";
         };
     }

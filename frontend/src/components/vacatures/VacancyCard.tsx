@@ -5,6 +5,11 @@ import type { VacancyListItem } from '@/types/api';
 import { EMPLOYMENT_TYPE_LABELS, EDUCATION_LEVEL_LABELS } from '@/types/api';
 import { formatSalary, formatHours } from '@/lib/api/vacancies';
 
+/** Gebruik unoptimized wanneer de URL geen bekende afbeeldingsextensie heeft (bijv. bestanden zonder extensie). */
+function needsUnoptimized(url: string): boolean {
+  return !/\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(url);
+}
+
 interface VacancyCardProps {
   vacancy: VacancyListItem;
 }
@@ -46,6 +51,7 @@ export default function VacancyCard({ vacancy }: VacancyCardProps) {
               width={80}
               height={80}
               className="object-contain w-full h-full p-1"
+              unoptimized={needsUnoptimized(vacancy.employerLogoUrl)}
             />
           ) : (
             <Stethoscope className="w-9 h-9 text-amber-500" />
