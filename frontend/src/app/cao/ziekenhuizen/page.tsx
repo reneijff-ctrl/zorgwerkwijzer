@@ -167,7 +167,7 @@ export default function CaoZiekenhuizenPage() {
                 </p>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-600">FWG 35 (Bijv. Helpende)</span>
+                    <span className="text-slate-600">FWG 25 (Bijv. Helpende)</span>
                     <span className="font-semibold text-slate-800">€ 2.578 - € 3.651</span>
                   </div>
                   <div className="flex justify-between text-sm">

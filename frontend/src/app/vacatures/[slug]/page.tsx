@@ -49,7 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://zorgwerkwijzer.nl/vacatures/${vacancy.slug}`,
     },
     openGraph: {
-      title: `${vacancy.title} bij ${vacancy.employerName}`,
+      title: vacancy.isFeatured
+        ? `⭐ ${vacancy.title} bij ${vacancy.employerName}`
+        : `${vacancy.title} bij ${vacancy.employerName}`,
       description: vacancy.description.substring(0, 160),
       type: 'article',
       url: `https://zorgwerkwijzer.nl/vacatures/${vacancy.slug}`,
@@ -131,6 +133,7 @@ export default async function VacancyDetailPage({ params }: Props) {
     ...(vacancy.educationLevel
       ? { educationRequirements: educationLabel }
       : {}),
+    ...(vacancy.isFeatured ? { featured: true } : {}),
     directApply: true,
     identifier: {
       '@type': 'PropertyValue',
@@ -188,6 +191,16 @@ export default async function VacancyDetailPage({ params }: Props) {
               {/* Header */}
               <header className="p-8 border-b border-slate-100">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
+                  {vacancy.isFeatured && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-400 text-white text-xs font-bold shadow-sm">
+                      ⭐ Uitgelichte vacature
+                    </span>
+                  )}
+                  {vacancy.isFeatured && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-600 text-white text-xs font-bold shadow-sm">
+                      👑 Premium
+                    </span>
+                  )}
                   {vacancy.occupationName && (
                     <span className="bg-sky-100 text-sky-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                       {vacancy.occupationName}
@@ -442,7 +455,7 @@ export default async function VacancyDetailPage({ params }: Props) {
               {related.map((v) => (
                 <Link
                   key={v.id}
-                  href={`/vacatures/${v.slug}`}
+                  href={`/vacature/${v.slug}`}
                   className="bg-white rounded-2xl border border-slate-200 hover:border-sky-300 hover:shadow-md p-5 flex flex-col gap-3 transition-all group"
                 >
                   <div>

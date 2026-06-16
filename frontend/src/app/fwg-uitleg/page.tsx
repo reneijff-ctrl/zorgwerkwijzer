@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { 
   Info, 
@@ -11,6 +12,36 @@ import {
   CheckCircle2,
   Table
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'FWG Uitleg 2026 | Functiewaardering Gezondheidszorg | ZorgWerkwijzer',
+  description:
+    'Alles over het FWG-systeem in de Nederlandse zorg: hoe wordt functiewaardering bepaald, welke schalen zijn er (FWG 15-80), en hoe beïnvloedt FWG jouw salaris?',
+  keywords: [
+    'fwg uitleg',
+    'functiewaardering gezondheidszorg',
+    'fwg schalen',
+    'fwg 40 salaris',
+    'fwg zorg',
+    'salarisschalen zorg',
+  ],
+  alternates: {
+    canonical: 'https://zorgwerkwijzer.nl/fwg-uitleg',
+  },
+  openGraph: {
+    title: 'FWG Uitleg 2026 | Functiewaardering Gezondheidszorg | ZorgWerkwijzer',
+    description:
+      'Hoe werkt FWG? Ontdek de schalen, salarissen en hoe functiewaardering jouw inkomen bepaalt in de zorg.',
+    url: 'https://zorgwerkwijzer.nl/fwg-uitleg',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FWG Uitleg 2026 | Functiewaardering Gezondheidszorg | ZorgWerkwijzer',
+    description:
+      'Hoe werkt FWG? Ontdek de schalen, salarissen en hoe functiewaardering jouw inkomen bepaalt.',
+  },
+};
 
 export default function FwgUitlegPage() {
   const breadcrumbSchema = {

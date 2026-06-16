@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin, Clock, ArrowRight, Stethoscope } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, Stethoscope, Briefcase } from 'lucide-react';
 import { searchVacancies, formatHours } from '@/lib/api/vacancies';
 import type { VacancyListItem } from '@/types/api';
 
@@ -28,7 +28,26 @@ export default async function RelatedVacancies({
 }: RelatedVacanciesProps) {
   const vacancies = await fetchRelatedVacancies(profession, limit);
 
-  if (vacancies.length === 0) return null;
+  if (vacancies.length === 0) {
+    return (
+      <section className="py-8 px-8 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+        <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+        <p className="text-slate-600 font-medium mb-1">
+          Momenteel geen vacatures gevonden voor {profession}.
+        </p>
+        <p className="text-slate-400 text-sm mb-5">
+          Wij zoeken continu naar nieuwe openstaande functies.
+        </p>
+        <Link
+          href={`/vacatures?q=${encodeURIComponent(profession)}`}
+          className="inline-flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-sky-700 transition-colors"
+        >
+          Bekijk alle vacatures
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -52,7 +71,7 @@ export default async function RelatedVacancies({
         {vacancies.map((v) => (
           <Link
             key={v.id}
-            href={`/vacatures/${v.slug}`}
+            href={`/vacature/${v.slug}`}
             className="group p-6 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-sky-200 hover:shadow-md transition-all flex flex-col"
           >
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-4 group-hover:bg-sky-50 transition-colors">

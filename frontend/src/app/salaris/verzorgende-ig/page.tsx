@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { 
   Wallet, 
@@ -44,7 +42,7 @@ export default function VerzorgendeIGSalarisPage() {
     },
     {
       question: "Wat is het verschil tussen FWG 35 en FWG 40?",
-      answer: "FWG 35 wordt vaak gebruikt voor Helpenden of beginnend verzorgenden. Voor een gediplomeerd Verzorgende IG is FWG 40 de standaard schaal, wat een hoger start- en eindsalaris betekent."
+      answer: "FWG 25 wordt gebruikt voor Helpenden. FWG 30 voor Helpende Plus. Voor een gediplomeerd Verzorgende IG is FWG 40 de standaard schaal, wat een hoger start- en eindsalaris betekent."
     },
     {
       question: "Hoe kan ik mijn netto salaris berekenen?",

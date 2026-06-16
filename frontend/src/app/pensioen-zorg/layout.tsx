@@ -1,30 +1,36 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Pensioen in de Zorg & PFZW Uitleg | Zorgwerkwijzer',
-  description: 'Alles over pensioenopbouw in de zorg via PFZW. Hoeveel premie betaal je als werknemer? Wat is het werkgeversaandeel? Ontdek het hier.',
+  title: 'Pensioen in de Zorg 2026 | PFZW Pensioenopbouw | ZorgWerkwijzer',
+  description:
+    'Alles over pensioen als zorgmedewerker: hoe bouw je pensioen op via PFZW, wat zijn de premies, wanneer ga je met pensioen en wat is je verwachte pensioenuitkering?',
+  keywords: [
+    'pensioen zorg',
+    'pfzw pensioen',
+    'pensioenopbouw verpleegkundige',
+    'pensioenfonds zorg welzijn',
+    'cao pensioen',
+    'pensioenleeftijd zorg',
+    'pensioen berekenen zorg',
+  ],
   alternates: {
-    canonical: 'https://www.zorgwerkwijzer.nl/pensioen-zorg',
+    canonical: 'https://zorgwerkwijzer.nl/pensioen-zorg',
   },
   openGraph: {
-    title: 'Pensioen in de Zorg & PFZW Uitleg | Zorgwerkwijzer',
-    description: 'Alles over pensioenopbouw in de zorg via PFZW. Hoeveel premie betaal je als werknemer? Wat is het werkgeversaandeel?',
-    url: 'https://www.zorgwerkwijzer.nl/pensioen-zorg',
-    siteName: 'Zorgwerkwijzer',
-    locale: 'nl_NL',
+    title: 'Pensioen in de Zorg 2026 | PFZW | ZorgWerkwijzer',
+    description:
+      'Pensioenopbouw via PFZW voor zorgmedewerkers: premies, opbouw, AOW en verwachte uitkering.',
+    url: 'https://zorgwerkwijzer.nl/pensioen-zorg',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pensioen in de Zorg & PFZW Uitleg | Zorgwerkwijzer',
-    description: 'Alles over pensioenopbouw in de zorg via PFZW. Hoeveel premie betaal je als werknemer?',
+    title: 'Pensioen in de Zorg 2026 | PFZW | ZorgWerkwijzer',
+    description:
+      'Pensioenopbouw via PFZW voor zorgmedewerkers: premies, opbouw en verwachte uitkering.',
   },
 };
 
-export default function PensionLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PensioenZorgLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

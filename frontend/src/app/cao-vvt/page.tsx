@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "CAO VVT 2026 | Salarisschalen en Arbeidsvoorwaarden",
   description: "Blijf op de hoogte van de CAO VVT. Bekijk de laatste loonsverhogingen, reiskostenvergoedingen en andere belangrijke afspraken voor de zorg.",
   alternates: {
-    canonical: "https://zorgwerkwijzer.nl/cao-vvt",
+    canonical: "https://zorgwerkwijzer.nl/cao/vvt",
   },
 };
 

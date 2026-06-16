@@ -43,16 +43,24 @@ export default function ContactPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
-    
-    // Simuleer backend integratie
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Formulier verzonden:', formData);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.message || 'Er is een fout opgetreden bij het verzenden.');
+      }
+
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error('Fout bij verzenden:', error);
-      setErrors({ form: 'Er is een fout opgetreden bij het verzenden. Probeer het later opnieuw.' });
+      const message = error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verzenden. Probeer het later opnieuw.';
+      setErrors({ form: message });
     } finally {
       setIsSubmitting(false);
     }

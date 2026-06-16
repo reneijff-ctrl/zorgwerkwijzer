@@ -24,17 +24,26 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: "ZorgWerkWijzer | Alles voor de zorgmedewerker",
+    title: "ZorgWerkwijzer | Alles voor de zorgmedewerker",
     description: "Bereken je salaris, ORT en bekijk CAO informatie voor de Nederlandse zorg.",
     url: "https://zorgwerkwijzer.nl",
-    siteName: "ZorgWerkWijzer",
+    siteName: "ZorgWerkwijzer",
     locale: "nl_NL",
     type: "website",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "ZorgWerkwijzer – Platform voor zorgmedewerkers",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ZorgWerkWijzer | Alles voor de zorgmedewerker",
+    title: "ZorgWerkwijzer | Alles voor de zorgmedewerker",
     description: "Bereken je salaris, ORT en bekijk CAO informatie voor de Nederlandse zorg.",
+    images: ["/og-image.svg"],
   },
   robots: {
     index: true,

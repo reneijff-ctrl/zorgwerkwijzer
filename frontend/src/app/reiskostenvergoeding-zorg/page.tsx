@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { 
   Car, 
@@ -10,6 +11,36 @@ import {
   Coins,
   ShieldCheck
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Reiskostenvergoeding Zorg 2026 | Tarieven & CAO Regels | ZorgWerkwijzer',
+  description:
+    'Alles over reiskostenvergoeding als zorgmedewerker: actuele tarieven per km, CAO VVT regels, openbaar vervoer en belastingvrije vergoedingen in 2026.',
+  keywords: [
+    'reiskostenvergoeding zorg',
+    'reiskosten verpleegkundige',
+    'km vergoeding cao vvt',
+    'woon werkverkeer zorg',
+    'reiskosten belastingvrij',
+    'reiskostenvergoeding ziekenhuis',
+  ],
+  alternates: {
+    canonical: 'https://zorgwerkwijzer.nl/reiskostenvergoeding-zorg',
+  },
+  openGraph: {
+    title: 'Reiskostenvergoeding Zorg 2026 | ZorgWerkwijzer',
+    description:
+      'Actuele reiskostentarieven, CAO VVT regels en belastingvrije vergoedingen voor zorgmedewerkers.',
+    url: 'https://zorgwerkwijzer.nl/reiskostenvergoeding-zorg',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Reiskostenvergoeding Zorg 2026 | ZorgWerkwijzer',
+    description:
+      'Actuele reiskostentarieven en CAO VVT regels voor zorgmedewerkers in 2026.',
+  },
+};
 
 export default function ReiskostenPage() {
   const faqs = [

@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Backward compatibility: oude vacaturedetail-URLs doorsturen naar nieuwe /vacature/ route
+      // Uitzondering: bekende SEO-landingspagina's worden NIET geredirect
+      {
+        source: '/vacatures/:slug((?!verpleegkundige$|helpende-plus$|verzorgende-ig$).*)',
+        destination: '/vacature/:slug',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { 
   ShieldCheck, 
@@ -10,6 +11,33 @@ import {
   Mail, 
   CheckCircle2 
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Over ZorgWerkwijzer | Onafhankelijk Platform voor Zorgmedewerkers',
+  description:
+    'ZorgWerkwijzer is het onafhankelijke platform voor zorgmedewerkers in Nederland. Alles over salaris, CAO, ORT, vakantiegeld en opleidingen op één plek.',
+  keywords: [
+    'over zorgwerkwijzer',
+    'zorgwerkwijzer platform',
+    'onafhankelijk zorg informatie',
+    'zorgmedewerker tools',
+  ],
+  alternates: {
+    canonical: 'https://zorgwerkwijzer.nl/over-ons',
+  },
+  openGraph: {
+    title: 'Over ZorgWerkwijzer | Onafhankelijk Platform voor Zorgmedewerkers',
+    description:
+      'Het onafhankelijke platform voor zorgmedewerkers: salaris, CAO, calculators en beroepsinformatie.',
+    url: 'https://zorgwerkwijzer.nl/over-ons',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Over ZorgWerkwijzer | Onafhankelijk Platform voor Zorgmedewerkers',
+    description: 'Het onafhankelijke platform voor zorgmedewerkers in Nederland.',
+  },
+};
 
 export default function OverOnsPage() {
   const orgSchema = {

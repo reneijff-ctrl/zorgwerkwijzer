@@ -1,5 +1,27 @@
+import type { Metadata } from 'next';
 import Link from "next/link";
 import { ShieldCheck, Lock, Eye, Mail } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: 'Privacyverklaring | ZorgWerkwijzer',
+  description:
+    'Lees de privacyverklaring van ZorgWerkwijzer. Hoe wij omgaan met jouw gegevens, welke cookies we gebruiken en wat jouw rechten zijn onder de AVG.',
+  keywords: ['privacyverklaring', 'privacy zorgwerkwijzer', 'avg zorg'],
+  alternates: {
+    canonical: 'https://zorgwerkwijzer.nl/privacy',
+  },
+  openGraph: {
+    title: 'Privacyverklaring | ZorgWerkwijzer',
+    description: 'Privacyverklaring van ZorgWerkwijzer: hoe wij omgaan met jouw gegevens.',
+    url: 'https://zorgwerkwijzer.nl/privacy',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Privacyverklaring | ZorgWerkwijzer',
+    description: 'Privacyverklaring van ZorgWerkwijzer.',
+  },
+};
 
 export default function PrivacyPage() {
   return (

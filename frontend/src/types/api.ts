@@ -7,6 +7,7 @@ export interface VacancyListItem {
   slug: string;
   employerName: string;
   employerSlug: string;
+  employerLogoUrl: string | null;
   cityName: string | null;
   occupationName: string | null;
   employmentType: EmploymentType | null;
@@ -16,6 +17,8 @@ export interface VacancyListItem {
   hoursMin: number | null;
   hoursMax: number | null;
   publishedAt: string;
+  isFeatured: boolean;
+  featuredUntil: string | null;
 }
 
 export interface VacancyDetail {
@@ -43,6 +46,8 @@ export interface VacancyDetail {
   seoDescription: string | null;
   createdAt: string;
   updatedAt: string;
+  isFeatured: boolean;
+  featuredUntil: string | null;
 }
 
 export interface EmployerDetail {
