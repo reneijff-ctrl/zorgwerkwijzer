@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 
-export default function RegistratieBevestigingPage() {
+function RegistratieBevestigingContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
 
@@ -98,5 +98,13 @@ export default function RegistratieBevestigingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegistratieBevestigingPage() {
+  return (
+    <Suspense fallback={<div>Laden...</div>}>
+      <RegistratieBevestigingContent />
+    </Suspense>
   );
 }
