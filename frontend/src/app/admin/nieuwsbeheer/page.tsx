@@ -210,7 +210,7 @@ export default function AdminNieuwsbeheerPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {article.aiGenerated && (
-                        <Sparkles className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" title="AI gegenereerd" />
+                        <span title="AI gegenereerd"><Sparkles className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" /></span>
                       )}
                       <span className="font-medium text-slate-900 line-clamp-1">{article.title}</span>
                     </div>

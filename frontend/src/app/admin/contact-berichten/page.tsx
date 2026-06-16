@@ -253,7 +253,7 @@ export default function AdminContactBerichtenPage() {
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-slate-200">
             <AdminPagination
-              currentPage={page}
+              page={page}
               totalPages={totalPages}
               onPageChange={setPage}
             />
