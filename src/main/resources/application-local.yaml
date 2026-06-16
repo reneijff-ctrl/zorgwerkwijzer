@@ -25,6 +25,8 @@ spring:
           writetimeout: 5000
 
 app:
+  frontend:
+    url: http://localhost:3000
   cors:
     allowed-origins:
       - http://localhost:3000
@@ -45,7 +47,23 @@ app:
     from: ${MAIL_FROM:noreply@zorgwerkwijzer.nl}
     admin: ${MAIL_ADMIN:admin@zorgwerkwijzer.nl}
   stripe:
-    # Lokale Stripe CLI webhook signing secret.
-    # Genereer met: stripe listen --forward-to http://localhost:8080/api/v1/stripe/webhook
-    # De CLI toont een whsec_... waarde — vul die hier in.
-    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    # ⚠️  VEREIST voor lokale webhook-verwerking (credits, abonnementen).
+    #
+    # Stap 1: installeer de Stripe CLI (https://stripe.com/docs/stripe-cli)
+    # Stap 2: log in:  stripe login
+    # Stap 3: start forwarding:
+    #   stripe listen --forward-to http://localhost:8080/api/v1/stripe/webhook
+    # Stap 4: kopieer het getoonde whsec_... geheim en vul het hieronder in:
+    #
+    # Zonder dit secret worden ALLE webhooks genegeerd — credits worden NIET
+    # toegevoegd na een betaling.
+    # ⚠️  BELANGRIJK: dit secret is sessie-gebonden en verandert bij elke nieuwe `stripe listen`.
+    # Kopieer het whsec_... dat de Stripe CLI toont en vervang de waarde hieronder.
+    # Voorbeeld uitvoer CLI: > Ready! Your webhook signing secret is whsec_abc123...
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_fc3b2d943a49cd79bdfb08c20577501b40a9f8fbe35b78d0512f64cf257901a9}
+
+# OpenAI configuratie voor AI Nieuwsredactie
+# Stel OPENAI_API_KEY in als environment variable, of vul de key hieronder in als fallback.
+# Verkrijg een API key via: https://platform.openai.com/api-keys
+openai:
+  api-key: ${OPENAI_API_KEY:}

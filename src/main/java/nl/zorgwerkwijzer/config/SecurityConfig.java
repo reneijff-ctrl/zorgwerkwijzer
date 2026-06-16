@@ -81,6 +81,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/regions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/occupations/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll()
                 // Public profile creation (registration flow)
                 .requestMatchers(HttpMethod.POST, "/api/v1/profiles").permitAll()
                 // Static file uploads — public (CV downloads, etc.)
@@ -89,18 +90,23 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 // Stripe webhook — geen JWT auth, eigen signature verificatie in controller
                 .requestMatchers(HttpMethod.POST, "/api/v1/stripe/webhook").permitAll()
+                // Calculator endpoints — publiek (geen auth vereist voor berekeningen)
+                .requestMatchers(HttpMethod.POST, "/api/v1/salary/calculate").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/salary/calculate-end-of-year").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/ort/calculate").permitAll()
                 // Subscription packages — publiek voor /prijzen pagina
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/packages").permitAll()
                 // Overige subscription endpoints — ROLE_EMPLOYER via @PreAuthorize
                 .requestMatchers("/api/v1/subscriptions/**").authenticated()
                 // Employer dashboard endpoints (method-level security via @PreAuthorize)
                 .requestMatchers("/api/v1/employer-dashboard/**").authenticated()
+                // Payment endpoints — vacancy credits (method-level security via @PreAuthorize)
+                .requestMatchers("/api/v1/payments/**").authenticated()
                 // Admin-only endpoints
                 .requestMatchers(HttpMethod.POST, "/api/v1/vacancies").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/vacancies/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/vacancies/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/employers").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/employers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/employers/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/news").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/news/**").hasRole("ADMIN")

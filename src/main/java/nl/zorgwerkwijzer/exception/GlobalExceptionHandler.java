@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -117,8 +120,41 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.PAYMENT_REQUIRED);
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentialsException(
+            BadCredentialsException ex,
+            HttpServletRequest request) {
+
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message("Ongeldig e-mailadres of wachtwoord.")
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({DisabledException.class, LockedException.class})
+    public ResponseEntity<ApiError> handleDisabledException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(423)
+                .error("Locked")
+                .message("Account is uitgeschakeld of tijdelijk geblokkeerd.")
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(423).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
+        log.error("[ERROR] Onverwachte fout op {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         ApiError error = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

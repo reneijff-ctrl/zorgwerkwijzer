@@ -14,21 +14,14 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:noreply@zorgwerkwijzer.nl}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-4o-mini}
+  max-tokens: ${OPENAI_MAX_TOKENS:2000}
 
 app:
   cors:
@@ -43,7 +36,7 @@ app:
     # C3: Minimum 256-bit Base64-encoded secret. App refuses to start if missing or weak.
     # Generate with: openssl rand -base64 64
     secret: ${JWT_SECRET}
-    expiration: 900000
+    expiration: 28800000
     refresh-expiration: 604800000
     issuer: zorgwerkwijzer.nl
   supabase:
